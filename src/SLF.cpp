@@ -714,7 +714,9 @@ void SLF_export_to_csv(const std::string& csv_filename)
             export_path);
 }
 
-/** @brief Print semua game menggunakan BST */
+/** @brief Print semua game menggunakan BST
+ *  @command: 'list'
+ */
 void SLF_display_all()
 {
         if (SLF_game_names.empty()) {
@@ -740,7 +742,9 @@ void SLF_display_all()
             SLF_game_names.size());
 }
 
-/** @brief Print daftar game dalam bentuk tabel */
+/** @brief Print daftar game dalam bentuk tabel
+ *  @command: 'list -l'
+ */
 void SLF_display_table()
 {
         if (SLF_game_names.empty()) {
@@ -797,7 +801,7 @@ void SLF_display_table()
 }
 
 /** @brief Print nama & AppID game, dikelompokkan dari huruf awal,
- *         cmd: 'list -n'
+ *  @command: 'list -n'
  */
 void SLF_display_number_name()
 {
@@ -883,7 +887,9 @@ void SLF_display_number_name()
             SLF_game_names.size());
 }
 
-/** @brief Print daftar game, urut dari playtime, cmd: 'list -p' */;
+/** @brief Print daftar game, urut dari playtime,
+ *  @command: 'list -p'
+ */
 void SLF_display_by_playtime()
 {
         if (SLF_game_names.empty()) {
@@ -958,7 +964,9 @@ void SLF_display_by_playtime()
             SLF_game_names.size());
 }
 
-/** @brief Print helper */
+/** @brief Print helper
+ *  @command: 'help'
+ */
 void SLF_print_help()
 {
         if (SLF_has_fetched) {

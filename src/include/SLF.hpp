@@ -14,13 +14,13 @@
 #include <unordered_map>
 #include <vector>
 
-/** @brief Daftar nama game disimpan */
+/** @brief Daftar nama [game] disimpan */
 extern std::vector<std::string> SLF_game_names;
 
-/** @brief Daftar ID Steam game */
+/** @brief Daftar ID Steam [game] */
 extern std::vector<int> SLF_game_appids;
 
-/** @brief Daftar playtime game dalam menit */
+/** @brief Daftar playtime [game] dalam menit */
 extern std::vector<int> SLF_game_playtimes;
 
 /** @brief Nama Steam User Account */
@@ -32,7 +32,7 @@ extern std::string SLF_account_location;
 /** @brief SteamID user */
 extern std::string SLF_account_steamid;
 
-/** @brief Nama file untuk menyimpan data game */
+/** @brief Nama file untuk menyimpan data [game] */
 extern std::string SLF_filename;
 
 /** @brief API Key Steam */
@@ -49,8 +49,8 @@ extern bool SLF_has_fetched;
 /** @brief Struktur node untuk BST */
 struct BSTNode
 {
-        std::string name;  /**< Nama game */
-        int         appid; /**< APPID game */
+        std::string name;  /**< Nama [game] */
+        int         appid; /**< APPID [game] */
         BSTNode*    left;  /**< Pointer kiri */
         BSTNode*    right; /**< Pointer kanan */
         size_t      index; /**< Indeks di vektor SLF_game_names */
@@ -61,7 +61,7 @@ struct BSTNode
         }
 };
 
-/** @brief Kelas untuk me-manage Binary Search Tree game */
+/** @brief Kelas untuk me-manage BST [[game]] */
 class GameBST
 {
       private:
@@ -86,34 +86,33 @@ class GameBST
         }
         ~GameBST();
 
-        /** @brief Inpuyt game ke BST */
+        /** @brief Inpuyt [[game]] ke BST */
         void insert(const std::string& name, int appid, size_t index);
 
-        /** @brief Print semua game dengan urut */
+        /** @brief Print semua [[game]] dengan urut */
         void displayAll(size_t name_width) const;
 };
 
-/** @brief Binary Search Tree untuk menyimpan game */
+/** @brief BST untuk menyimpan [[game]] */
 extern GameBST SLF_game_bst;
 
 /** @brief Struktur node tree */
 struct TreeNode
 {
-        std::unordered_map<char, TreeNode*> children; /**< Anak-anak node trie
-                                                       */
-        std::vector<size_t> indices; /**< Indeks game dengan prefiks ini */
+        std::unordered_map<char, TreeNode*> children;
+        std::vector<size_t> indices; /**< Indeks [[game]] dengan prefiks ini */
         TreeNode()
         {
         }
 };
 
-/** @brief Kelas untuk me-manage game Tree */
+/** @brief Kelas untuk me-manage [game] Tree */
 class GameT
 {
       private:
         TreeNode* root;
 
-        /** @brief Membersihkan Trie secara rekursif */
+        /** @brief Clean Tree scr rekursif */
         void clear(TreeNode* node);
 
         /** @brief Mengumpulkan semua indeks di bawah node */
@@ -125,17 +124,17 @@ class GameT
         }
         ~GameT();
 
-        /** @brief Memasukkan nama game ke Trie */
+        /** @brief Input nama [[game]] ke Tree */
         void insert(const std::string& name, size_t index);
 
-        /** @brief Mencari semua indeks game dengan prefiks tertentu */
+        /** @brief Search semua indeks [[game]] dengan prefiks tertentu */
         std::vector<size_t> searchPrefix(const std::string& prefix) const;
 };
 
-/** @brief Trie untuk pencarian prefiks game */
+/** @brief Tree untuk searching prefiks [[game]] */
 extern GameT SLF_game_tree;
 
-/** @brief Hash table untuk mencari game berdasarkan nama */
+/** @brief Hash table untuk searching [[game]] dari nama */
 extern std::unordered_map<std::string, size_t> SLF_game_hash;
 
 /** @brief Mengubah string menjadi huruf kecil
@@ -144,47 +143,56 @@ extern std::unordered_map<std::string, size_t> SLF_game_hash;
  */
 std::string SLF_to_lower(const std::string& s);
 
-/** @brief Save data game ke file */
+/** @brief Save data [game] ke file */
 void SLF_save_to_file();
 
-/** @brief Load data game dari file */
+/** @brief Load data [game] dari file */
 void SLF_load_from_file();
 
-/** @brief Mengambil data game dari Steam berdasarkan ID
+/** @brief Mengambil data [game] dari Steam berdasarkan ID
  *  @param input_id SteamID atau ID custom user
  *  @return True jika berhasil, False jika gagal
  */
 bool SLF_fetch_games(const std::string& input_id);
 
-/** @brief Mencari game berdasarkan awalan nama
- *  @param prefix Awalan nama game yang dicari
+/** @brief Search [game] dari awalan nama
+ *  @param prefix Awalan nama [game] yang dicari
  */
 void SLF_search_prefix(const std::string& prefix);
 
-/** @brief Mencari game berdasarkan nama lengkap
- *  @param name Nama lengkap game yang dicari
+/** @brief Search [game] dari nama lengkap
+ *  @param name Nama lengkap [game] yang dicari
  */
 void SLF_lookup_exact(const std::string& name);
 
-/** @brief Mengekspor daftar game ke file CSV
+/** @brief Mengekspor daftar [game] ke file CSV
  *  @param csv_filename Nama file CSV tujuan
  */
 void SLF_export_to_csv(const std::string& csv_filename);
 
-/** @brief Menampilkan semua game, dikelompokkan berdasarkan huruf awal */
+/** @brief Print semua [game], dikelompokkan dari huruf awal
+ *  @command: 'list'
+ */
 void SLF_display_all();
 
-/** @brief Menampilkan daftar game dalam bentuk tabel */
+/** @brief Print daftar [game] dalam bentuk tabel
+ *  @command: 'list -l'
+ */
 void SLF_display_table();
 
-/** @brief Menampilkan nama dan AppID game, dikelompokkan berdasarkan huruf awal
+/** @brief Print nama dan AppID [game], dikelompokkan dari huruf awal
+ *  @command: 'list -n'
  */
 void SLF_display_number_name();
 
-/** @brief Menampilkan daftar game, diurutkan berdasarkan waktu bermain */
+/** @brief Print daftar [game], urut dari playtime
+ *  @command: 'list -p'
+ */
 void SLF_display_by_playtime();
 
-/** @brief Menampilkan bantuan command */
+/** @brief Print helper 
+ *  @command: 'help'
+*/
 void SLF_print_help();
 
 /** @brief Memparse command dari user input

@@ -950,6 +950,12 @@ void SLF_print_help()
                 print(fg(color::white), "Username: {}\n", SLF_account_username);
                 print(fg(color::white), "Location: {}\n", SLF_account_location);
                 print(fg(color::white), "SteamID:  {}\n", SLF_account_steamid);
+                print(fg(color::white), "Link to Profile: ");
+                print(
+                    fg(color::blue),
+                    "https://steamcommunity.com/profiles/{}/"
+                    "\n",
+                    SLF_account_steamid);
                 print(fg(color::cyan), "╾━━━━━━━━╼\n");
         }
         print(fg(color::cyan) | emphasis::bold, "Commands:\n");
@@ -977,7 +983,7 @@ void SLF_print_help()
         print(fg(color::yellow), "- Steam profile must be public.\n");
         print(
             fg(color::yellow),
-            "- SteamID is a 17-digit SteamID64 (e.g., 76561197960435530) or "
+            "- SteamID is a 17-digit SteamID64 (e.g., 76561198870494588) or "
             "Unique ID.\n\n");
 }
 

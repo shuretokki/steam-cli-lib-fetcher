@@ -1,4 +1,4 @@
-#include "SLF.hpp"
+#include "slf.hpp"
 
 using namespace fmt;
 using json = nlohmann::json;
@@ -10,8 +10,8 @@ std::string                             SLF_api_key;
 std::string                             SLF_account_username = "";
 std::string                             SLF_account_location = "";
 std::string                             SLF_account_steamid  = "";
-std::string                             SLF_filename = "data/steam_games.json";
-bool                                    SLF_verbose  = false;
+std::string                             SLF_filename    = "data/fetch.json";
+bool                                    SLF_verbose     = false;
 bool                                    SLF_has_fetched = false;
 GameBST                                 SLF_game_bst;
 GameT                                   SLF_game_tree;
@@ -31,7 +31,6 @@ std::string SLF_to_lower(const std::string& s)
 }
 
 // --- BST ---
-
 /** @brief Clean BST scr rekursif */
 void GameBST::clear(BSTNode* node)
 {
@@ -76,7 +75,7 @@ void GameBST::inOrder(BSTNode* node, size_t name_width) const
         inOrder(node->right, name_width);
 }
 
-/** @brief Destruktor GameBST */
+/** @brief Destruktor */
 GameBST::~GameBST()
 {
         clear(root);
@@ -119,13 +118,13 @@ void GameT::collectIndices(TreeNode* node, std::vector<size_t>& indices) const
         }
 }
 
-/** @brief Destruktor GameT */
+/** @brief Destruktor */
 GameT::~GameT()
 {
         clear(root);
 }
 
-/** @brief Input nama game ke Tree */
+/** @brief Input nama game ke tree */
 void GameT::insert(const std::string& name, size_t index)
 {
         TreeNode*   current    = root;

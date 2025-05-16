@@ -580,7 +580,7 @@ void SLF_search_prefix(const std::string& prefix)
         }
         name_width = std::min(name_width + 4, size_t(34));
 
-        print(fg(color::light_green) | emphasis::bold, "\nMatching games:\n");
+        print(fg(color::light_green) | emphasis::bold, "Matching games:\n");
         for (size_t idx : indices) {
                 std::string display_name = SLF_game_names[idx];
                 if (display_name.length() > name_width) {
@@ -599,10 +599,7 @@ void SLF_search_prefix(const std::string& prefix)
                     name_width,
                     playtime_str);
         }
-        print(
-            fg(color::light_green),
-            "\nTotal matches: {}\n\n",
-            indices.size());
+        print(fg(color::light_green), "\nTotal matches: {}\n", indices.size());
 }
 
 /** @brief Mencari game dari nama lengkap menggunakan hash table
@@ -668,31 +665,12 @@ void SLF_export_to_csv(const std::string& csv_filename)
                 return;
         }
 
-        size_t name_width     = 0;
-        size_t playtime_width = 15;
-        for (size_t i = 0; i < SLF_game_names.size(); ++i) {
-                if (SLF_game_names[i].length() > name_width) {
-                        name_width = SLF_game_names[i].length();
-                }
-                std::string playtime_str =
-                    SLF_game_playtimes[i] > 0 ?
-                        std::to_string(SLF_game_playtimes[i]) + " min" :
-                        "Not played";
-                if (playtime_str.length() > playtime_width) {
-                        playtime_width = playtime_str.length();
-                }
-        }
-        name_width = std::min(name_width, size_t(30));
-
-        ofs << std::left << std::setw(10) << "AppID" << ","
-            << std::setw(name_width) << "Name" << ","
-            << std::setw(playtime_width) << "Playtime" << "\n";
+        ofs << "AppID" << ","
+            << "Name" << ","
+            << "Playtime" << "\n";
 
         for (size_t i = 0; i < SLF_game_names.size(); ++i) {
                 std::string name = SLF_game_names[i];
-                if (name.length() > name_width) {
-                        name = name.substr(0, name_width - 3) + "...";
-                }
                 std::replace(name.begin(), name.end(), '"', '\'');
                 if (name.find(',') != std::string::npos) {
                         name = "\"" + name + "\"";
@@ -701,9 +679,8 @@ void SLF_export_to_csv(const std::string& csv_filename)
                     SLF_game_playtimes[i] > 0 ?
                         std::to_string(SLF_game_playtimes[i]) + " min" :
                         "Not played";
-                ofs << std::left << std::setw(10) << SLF_game_appids[i] << ","
-                    << std::setw(name_width) << name << ","
-                    << std::setw(playtime_width) << playtime_str << "\n";
+                ofs << SLF_game_appids[i] << "," << name << "," << playtime_str
+                    << "\n";
         }
 
         print(
@@ -795,7 +772,7 @@ void SLF_display_table()
         }
         print(
             fg(color::light_green),
-            "\nTotal games: {}\n\n",
+            "\nTotal games: {}\n",
             SLF_game_names.size());
 }
 
@@ -882,7 +859,7 @@ void SLF_display_number_name()
         }
         print(
             fg(color::light_green),
-            "\nTotal games: {}\n\n",
+            "\nTotal games: {}\n",
             SLF_game_names.size());
 }
 
@@ -959,7 +936,7 @@ void SLF_display_by_playtime()
         }
         print(
             fg(color::light_green),
-            "\nTotal games: {}\n\n",
+            "\nTotal games: {}\n",
             SLF_game_names.size());
 }
 

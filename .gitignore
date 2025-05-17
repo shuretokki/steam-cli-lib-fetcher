@@ -1,4 +1,3 @@
-/obj
-/app
+CMakeUserPresets.json
+/build
 .vscode
-Makefile

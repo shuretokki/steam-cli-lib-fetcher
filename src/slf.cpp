@@ -17,10 +17,6 @@ GameBST                                 SLF_game_bst;
 GameT                                   SLF_game_tree;
 std::unordered_map<std::string, size_t> SLF_game_hash;
 
-/** @brief Mengubah string menjadi huruf kecil
- *  @param s String yang diubah
- *  @return String dalam huruf kecil
- */
 std::string SLF_to_lower(const std::string& s)
 {
         std::string lower = s;
@@ -30,8 +26,6 @@ std::string SLF_to_lower(const std::string& s)
         return lower;
 }
 
-// --- BST ---
-/** @brief Clean BST scr rekursif */
 void GameBST::clear(BSTNode* node)
 {
         if (!node)
@@ -41,7 +35,6 @@ void GameBST::clear(BSTNode* node)
         delete node;
 }
 
-/** @brief Input node baru ke BST scr rekursif */
 BSTNode* GameBST::insert(
     BSTNode*           node,
     const std::string& name,

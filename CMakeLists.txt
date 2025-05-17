@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 3.21.7)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "C:/Users/Administrator/vcpkg/scripts/buildsystems/vcpkg.cmake" 
-        CACHE STRING "Vcpkg toolchain file")
-endif()
+set(CMAKE_TOOLCHAIN_FILE "C:/Users/Administrator/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
-
-if(NOT DEFINED VCPKG_TARGET_TRIPLET)
-    set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "Vcpkg target triplet")
-endif()
+set(VCPKG_TARGET_TRIPLET "x64-mingw-static" CACHE STRING "Vcpkg target triplet")
 
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "Vcpkg target triplet: ${VCPKG_TARGET_TRIPLET}")
@@ -33,39 +27,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 message(STATUS "Detected compiler: ${CMAKE_CXX_COMPILER_ID}")
-if(MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE 
-    /W4 
-    /WX 
-    /permissive- 
-    /utf-8
-    /MP
-    /sdl
-    /guard:cf
-  )
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  target_compile_options(${PROJECT_NAME} PRIVATE 
-    -Wall 
-    -Wextra 
-    -Wpedantic 
-    -Werror
-    -fstack-protector-strong
-    -D_FORTIFY_SOURCE=2
-  )
-  if(MINGW)
-    target_link_options(${PROJECT_NAME} PRIVATE
-      -Wl,--nxcompat
-      -Wl,--dynamicbase
-      -mconsole  # Explicitly link as console application
-    )
-  endif()
-else()
-  target_compile_options(${PROJECT_NAME} PRIVATE 
+
+target_compile_options(${PROJECT_NAME} PRIVATE 
     -Wall 
     -Wextra 
     -Wpedantic
   )
-endif()
 
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

@@ -9,11 +9,11 @@
     },
     {
       "name": "nlohmann-json",
-      "version>=": "3.11.2"
+      "version>=": "3.12.0"
     },
     {
       "name": "cpp-httplib",
-      "version>=": "0.14.0"
+      "version>=": "0.20.1"
     },
     {
       "name": "vcpkg-cmake",

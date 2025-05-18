@@ -3,25 +3,20 @@
 
 using namespace fmt;
 
-/** @brief Fungsi main
- *  @return 0 jika sukses
- */
 int main()
 {
-        if (std::filesystem::exists(SLF_filename)) {
-                std::filesystem::remove(SLF_filename);
-                if (SLF_verbose) {
-                        print(
-                            fg(color::yellow),
-                            "Cleared previous data on startup.\n");
+        if (std::filesystem::exists(data_filename)) {
+                std::filesystem::remove(data_filename);
+                if (verbose) {
+                        print(fg(color::yellow), "Cleared old data.\n");
                 }
         }
 
-        SLF_load_from_file();
+        load_games();
 
         print(
             fg(color::gold) | emphasis::bold,
-            "Steam Library Fetcher v1.0 - Type 'help' for commands\n");
+            "Steam Game Fetcher v1.0 - Type 'help' for commands\n");
         print(fg(color::gold), "╾━━━━━━━━╼\n");
 
         std::string line;
@@ -35,18 +30,18 @@ int main()
                         continue;
                 }
 
-                std::vector<std::string> args = SLF_parse_command(line);
+                std::vector<std::string> args = parse_command(line);
                 try {
-                        SLF_process_command(args);
+                        process_command(args);
                 } catch (const std::exception& e) {
                         if (std::string(e.what()) == "exit") {
-                                if (std::filesystem::exists(SLF_filename)) {
-                                        std::filesystem::remove(SLF_filename);
-                                        if (SLF_verbose) {
+                                if (std::filesystem::exists(data_filename)) {
+                                        std::filesystem::remove(data_filename);
+                                        if (verbose) {
                                                 print(
                                                     fg(color::yellow),
-                                                    "Removed {} on exit.\n",
-                                                    SLF_filename);
+                                                    "Removed {}.\n",
+                                                    data_filename);
                                         }
                                 }
                                 print(fg(color::light_sea_green), "Goodbye!\n");

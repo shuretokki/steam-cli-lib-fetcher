@@ -14,194 +14,50 @@
 #include <unordered_map>
 #include <vector>
 
-/** @brief Daftar nama [game] disimpan */
-extern std::vector<std::string> SLF_game_names;
+extern std::string data_filename;
+extern bool        verbose;
+extern bool        has_fetched;
+extern std::string api_key;
 
-/** @brief Daftar ID Steam [game] */
-extern std::vector<int> SLF_game_appids;
+struct Game;
+struct User;
+extern std::vector<Game> games;
+extern User              user;
 
-/** @brief Daftar playtime [game] dalam menit */
-extern std::vector<int> SLF_game_playtimes;
-
-/** @brief Nama Steam User Account */
-extern std::string SLF_account_username;
-
-/** @brief Lokasi Steam User Account */
-extern std::string SLF_account_location;
-
-/** @brief SteamID user */
-extern std::string SLF_account_steamid;
-
-/** @brief Nama file untuk menyimpan data [game] */
-extern std::string SLF_filename;
-
-/** @brief API Key Steam */
-extern std::string SLF_api_key;
-
-/** @brief Status mode verbose (true : aktif) */
-extern bool SLF_verbose;
-
-/** @brief Status apakah data sudah diambil (true : sudah) */
-extern bool SLF_has_fetched;
-
-// --- BST ---
-
-/** @brief Struktur node untuk BST */
-struct BSTNode
+struct Prefix
 {
-        std::string name;  /**< Nama [game] */
-        int         appid; /**< APPID [game] */
-        BSTNode*    left;  /**< Pointer kiri */
-        BSTNode*    right; /**< Pointer kanan */
-        size_t      index; /**< Indeks di vektor SLF_game_names */
-
-        BSTNode(const std::string& n, int id, size_t idx)
-            : name(n), appid(id), left(nullptr), right(nullptr), index(idx)
+        struct Node
+        {
+                std::unordered_map<char, Node*> children;
+                std::vector<size_t>             indices;
+        };
+        Node* root;
+        Prefix() : root(new Node())
         {
         }
-};
+        ~Prefix();
+        void                insert(const std::string& name, size_t index);
+        std::vector<size_t> search(const std::string& prefix) const;
 
-/** @brief Kelas untuk me-manage BST [[game]] */
-class GameBST
-{
       private:
-        BSTNode* root;
-
-        /** @brief Clean BST dengan rekursif */
-        void clear(BSTNode* node);
-
-        /** @brief Inpuy node baru ke BST dengan rekursif */
-        BSTNode* insert(
-            BSTNode*           node,
-            const std::string& name,
-            int                appid,
-            size_t             index);
-
-        /** @brief Print BST secara in-order */
-        void inOrder(BSTNode* node, size_t name_width) const;
-
-      public:
-        GameBST() : root(nullptr)
-        {
-        }
-        ~GameBST();
-
-        /** @brief Inpuyt [[game]] ke BST */
-        void insert(const std::string& name, int appid, size_t index);
-
-        /** @brief Print semua [[game]] dengan urut */
-        void displayAll(size_t name_width) const;
+        void clear(Node* node);
+        void collect_indices(Node* node, std::vector<size_t>& indices) const;
 };
 
-/** @brief BST untuk menyimpan [[game]] */
-extern GameBST SLF_game_bst;
+extern Prefix                                  games_prefix;
+extern std::unordered_map<std::string, size_t> games_map;
 
-/** @brief Struktur node tree */
-struct TreeNode
-{
-        std::unordered_map<char, TreeNode*> children;
-        std::vector<size_t> indices; /**< Indeks [[game]] dengan prefiks ini */
-        TreeNode()
-        {
-        }
-};
-
-/** @brief Kelas untuk me-manage [game] Tree */
-class GameT
-{
-      private:
-        TreeNode* root;
-
-        /** @brief Clean Tree scr rekursif */
-        void clear(TreeNode* node);
-
-        /** @brief Mengumpulkan semua indeks di bawah node */
-        void collectIndices(TreeNode* node, std::vector<size_t>& indices) const;
-
-      public:
-        GameT() : root(new TreeNode())
-        {
-        }
-        ~GameT();
-
-        /** @brief Input nama [[game]] ke Tree */
-        void insert(const std::string& name, size_t index);
-
-        /** @brief Search semua indeks [[game]] dengan prefiks tertentu */
-        std::vector<size_t> searchPrefix(const std::string& prefix) const;
-};
-
-/** @brief Tree untuk searching prefiks [[game]] */
-extern GameT SLF_game_tree;
-
-/** @brief Hash table untuk searching [[game]] dari nama */
-extern std::unordered_map<std::string, size_t> SLF_game_hash;
-
-/** @brief Mengubah string menjadi huruf kecil
- *  @param s String yang diubah
- *  @return String dalam huruf kecil
- */
-std::string SLF_to_lower(const std::string& s);
-
-/** @brief Save data [game] ke file */
-void SLF_save_to_file();
-
-/** @brief Load data [game] dari file */
-void SLF_load_from_file();
-
-/** @brief Mengambil data [game] dari Steam berdasarkan ID
- *  @param input_id SteamID atau ID custom user
- *  @return True jika berhasil, False jika gagal
- */
-bool SLF_fetch_games(const std::string& input_id);
-
-/** @brief Search [game] dari awalan nama
- *  @param prefix Awalan nama [game] yang dicari
- */
-void SLF_search_prefix(const std::string& prefix);
-
-/** @brief Search [game] dari nama lengkap
- *  @param name Nama lengkap [game] yang dicari
- */
-void SLF_lookup_exact(const std::string& name);
-
-/** @brief Mengekspor daftar [game] ke file CSV
- *  @param csv_filename Nama file CSV tujuan
- */
-void SLF_export_to_csv(const std::string& csv_filename);
-
-/** @brief Print semua [game], dikelompokkan dari huruf awal
- *  @command: 'list'
- */
-void SLF_display_all();
-
-/** @brief Print daftar [game] dalam bentuk tabel
- *  @command: 'list -l'
- */
-void SLF_display_table();
-
-/** @brief Print nama dan AppID [game], dikelompokkan dari huruf awal
- *  @command: 'list -n'
- */
-void SLF_display_number_name();
-
-/** @brief Print daftar [game], urut dari playtime
- *  @command: 'list -p'
- */
-void SLF_display_by_playtime();
-
-/** @brief Print helper 
- *  @command: 'help'
-*/
-void SLF_print_help();
-
-/** @brief Memparse command dari user input
- *  @param line Input command dari user
- *  @return Vektor string berisi command args
- */
-std::vector<std::string> SLF_parse_command(const std::string& line);
-
-/** @brief Memproses command yang diberikan user
- *  @param args Vektor command args
- */
-void SLF_process_command(const std::vector<std::string>& args);
+std::string              to_lower(const std::string& s);
+void                     save_games();
+void                     load_games();
+bool                     fetch_games(const std::string& id);
+void                     search_prefix(const std::string& prefix);
+void                     count_played();
+void                     export_csv(const std::string& filename);
+void                     list_games();
+void                     list_table();
+void                     list_by_letter();
+void                     list_by_playtime();
+void                     show_help();
+std::vector<std::string> parse_command(const std::string& line);
+void                     process_command(const std::vector<std::string>& args);

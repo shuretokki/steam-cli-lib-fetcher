@@ -7,9 +7,6 @@ int main()
 {
         if (std::filesystem::exists(data_filename)) {
                 std::filesystem::remove(data_filename);
-                if (verbose) {
-                        print(fg(color::yellow), "Cleared old data.\n");
-                }
         }
 
         load_games();
@@ -37,12 +34,6 @@ int main()
                         if (std::string(e.what()) == "exit") {
                                 if (std::filesystem::exists(data_filename)) {
                                         std::filesystem::remove(data_filename);
-                                        if (verbose) {
-                                                print(
-                                                    fg(color::yellow),
-                                                    "Removed {}.\n",
-                                                    data_filename);
-                                        }
                                 }
                                 print(fg(color::light_sea_green), "Goodbye!\n");
                                 break;

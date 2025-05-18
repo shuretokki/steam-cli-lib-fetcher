@@ -18,7 +18,6 @@ struct User
 };
 
 std::string                             data_filename = "data/games.json";
-bool                                    verbose       = false;
 bool                                    has_fetched   = false;
 std::string                             api_key;
 std::vector<Game>                       games;
@@ -50,7 +49,7 @@ Prefix::~Prefix()
         clear(root);
 }
 
-void Prefix::insert(const std::string& name, size_t index)
+void Prefix::insert(const std::string& name, size_t idx)
 {
         Node*       current    = root;
         std::string lower_name = to_lower(name);
@@ -60,7 +59,7 @@ void Prefix::insert(const std::string& name, size_t index)
                 }
                 current = current->children[c];
         }
-        current->indices.push_back(index);
+        current->ix.push_back(idx);
 }
 
 std::vector<size_t> Prefix::search(const std::string& prefix) const
@@ -78,16 +77,13 @@ std::vector<size_t> Prefix::search(const std::string& prefix) const
         return result;
 }
 
-void Prefix::collect_indices(Node* node, std::vector<size_t>& indices) const
+void Prefix::collect_indices(Node* node, std::vector<size_t>& ix) const
 {
         if (!node)
                 return;
-        indices.insert(
-            indices.end(),
-            node->indices.begin(),
-            node->indices.end());
+        ix.insert(ix.end(), node->ix.begin(), node->ix.end());
         for (const auto& child : node->children) {
-                collect_indices(child.second, indices);
+                collect_indices(child.second, ix);
         }
 }
 
@@ -121,12 +117,6 @@ bool load_api_key()
                 j["api_key"] = key;
                 ofs << j.dump(4);
                 api_key = key;
-                if (verbose) {
-                        print(
-                            fg(color::yellow),
-                            "Saved API key to {}.\n",
-                            config_file);
-                }
         } else {
                 try {
                         json j;
@@ -138,12 +128,6 @@ bool load_api_key()
                                     "Error: API key in {} is empty.\n",
                                     config_file);
                                 return false;
-                        }
-                        if (verbose) {
-                                print(
-                                    fg(color::yellow),
-                                    "Loaded API key from {}.\n",
-                                    config_file);
                         }
                 } catch (const std::exception& e) {
                         print(
@@ -171,7 +155,7 @@ void save_games()
         }
         json j;
         j["user"]["username"] = user.username;
-        j["user"]["location"] = user.location;
+        1j["user"]["location"] = user.location;
         j["user"]["steamid"]  = user.steamid;
         for (const auto& game : games) {
                 json g;
@@ -181,9 +165,6 @@ void save_games()
                 j["games"].push_back(g);
         }
         ofs << j.dump(4);
-        if (verbose) {
-                print(fg(color::yellow), "Saved games to {}.\n", data_filename);
-        }
 }
 
 void load_games()
@@ -194,12 +175,6 @@ void load_games()
         }
         std::ifstream ifs(data_filename);
         if (!ifs.is_open()) {
-                if (verbose) {
-                        print(
-                            fg(color::yellow),
-                            "No game data at {}. Use 'fetch' to get games.\n",
-                            data_filename);
-                }
                 return;
         }
         try {
@@ -229,13 +204,6 @@ void load_games()
                                 games_map[to_lower(game.name)] = i;
                         }
                 }
-                if (verbose) {
-                        print(
-                            fg(color::yellow),
-                            "Loaded {} games from {}.\n",
-                            games.size(),
-                            data_filename);
-                }
         } catch (const std::exception& e) {
                 print(
                     fg(color::indian_red),
@@ -264,9 +232,6 @@ bool fetch_games(const std::string& id)
                     "/ISteamUser/ResolveVanityURL/v0001/?key={}&vanityurl={}",
                     api_key,
                     custom_id);
-                if (verbose) {
-                        print(fg(color::yellow), "Resolving URL: {}\n", url);
-                }
                 auto res = cli.Get(url.c_str());
                 if (!res || res->status != 200) {
                         print(
@@ -300,12 +265,6 @@ bool fetch_games(const std::string& id)
             "/ISteamUser/GetPlayerSummaries/v0002/?key={}&steamids={}",
             api_key,
             steamid);
-        if (verbose) {
-                print(
-                    fg(color::yellow),
-                    "Fetching user info: {}\n",
-                    summary_url);
-        }
         auto summary_res = cli.Get(summary_url.c_str());
         if (!summary_res || summary_res->status != 200) {
                 print(
@@ -339,9 +298,6 @@ bool fetch_games(const std::string& id)
             "?key={}&steamid={}&format=json&include_appinfo=1",
             api_key,
             steamid);
-        if (verbose) {
-                print(fg(color::yellow), "Fetching games: {}\n", games_url);
-        }
         auto games_res = cli.Get(games_url.c_str());
         if (!games_res || games_res->status != 200) {
                 print(fg(color::indian_red), "Error: Cannot fetch games.\n");
@@ -400,8 +356,8 @@ bool fetch_games(const std::string& id)
 
 void search_prefix(const std::string& prefix)
 {
-        auto indices = games_prefix.search(prefix);
-        if (indices.empty()) {
+        auto ix = games_prefix.search(prefix);
+        if (ix.empty()) {
                 print(fg(color::indian_red), "No games found.\n");
                 return;
         }
@@ -411,7 +367,7 @@ void search_prefix(const std::string& prefix)
         }
         name_width = std::min(name_width + 4, size_t(34));
         print(fg(color::light_green) | emphasis::bold, "Matching games:\n");
-        for (size_t idx : indices) {
+        for (size_t idx : ix) {
                 std::string name = games[idx].name;
                 if (name.length() > name_width) {
                         name = name.substr(0, name_width - 3) + "...";
@@ -428,7 +384,7 @@ void search_prefix(const std::string& prefix)
                     name_width,
                     playtime);
         }
-        print(fg(color::light_green), "\nTotal matches: {}\n", indices.size());
+        print(fg(color::light_green), "\nTotal matches: {}\n", ix.size());
 }
 
 void count_played()
@@ -501,13 +457,13 @@ void list_games()
         }
         name_width = std::min(name_width + 4, size_t(34));
         print(fg(color::gold) | emphasis::bold, "Games:\n");
-        std::vector<size_t> indices(games.size());
+        std::vector<size_t> ix(games.size());
         for (size_t i = 0; i < games.size(); ++i)
-                indices[i] = i;
-        std::sort(indices.begin(), indices.end(), [](size_t a, size_t b) {
+                ix[i] = i;
+        std::sort(ix.begin(), ix.end(), [](size_t a, size_t b) {
                 return to_lower(games[a].name) < to_lower(games[b].name);
         });
-        for (size_t idx : indices) {
+        for (size_t idx : ix) {
                 std::string name = games[idx].name;
                 if (name.length() > name_width) {
                         name = name.substr(0, name_width - 3) + "...";
@@ -544,13 +500,13 @@ void list_table()
             "",
             name_width,
             "");
-        std::vector<size_t> indices(games.size());
+        std::vector<size_t> ix(games.size());
         for (size_t i = 0; i < games.size(); ++i)
-                indices[i] = i;
-        std::sort(indices.begin(), indices.end(), [](size_t a, size_t b) {
+                ix[i] = i;
+        std::sort(ix.begin(), ix.end(), [](size_t a, size_t b) {
                 return to_lower(games[a].name) < to_lower(games[b].name);
         });
-        for (size_t idx : indices) {
+        for (size_t idx : ix) {
                 std::string name = games[idx].name;
                 if (name.length() > name_width) {
                         name = name.substr(0, name_width - 3) + "...";
@@ -585,9 +541,9 @@ void list_by_letter()
                 if (std::isdigit(first)) {
                         digits.push_back({ i });
                 } else if (std::isalpha(first)) {
-                        int index = std::tolower(first) - 'a';
-                        if (index >= 0 && index < 26) {
-                                letters[index].push_back(i);
+                        int idx = std::tolower(first) - 'a';
+                        if (idx >= 0 && idx < 26) {
+                                letters[idx].push_back(i);
                         }
                 }
         }
@@ -646,10 +602,10 @@ void list_by_playtime()
                     "No games found. Use 'fetch' first.\n");
                 return;
         }
-        std::vector<size_t> indices(games.size());
+        std::vector<size_t> ix(games.size());
         for (size_t i = 0; i < games.size(); ++i)
-                indices[i] = i;
-        std::sort(indices.begin(), indices.end(), [](size_t a, size_t b) {
+                ix[i] = i;
+        std::sort(ix.begin(), ix.end(), [](size_t a, size_t b) {
                 if (games[a].playtime != games[b].playtime) {
                         return games[a].playtime > games[b].playtime;
                 }
@@ -674,7 +630,7 @@ void list_by_playtime()
             "",
             name_width,
             "");
-        for (size_t idx : indices) {
+        for (size_t idx : ix) {
                 std::string name = games[idx].name;
                 if (name.length() > name_width) {
                         name = name.substr(0, name_width - 3) + "...";
@@ -697,13 +653,16 @@ void list_by_playtime()
 void show_help()
 {
         if (has_fetched) {
-                print(fg(color::cyan) | emphasis::bold, "\nCurrent Account:\n");
+                print(
+                    fg(color::cyan) | emphasis::bold,
+                    "\n"
+                    "Current Account:\n");
                 print(fg(color::white), "Username: {}\n", user.username);
                 print(fg(color::white), "Location: {}\n", user.location);
                 print(fg(color::white), "SteamID: {}\n", user.steamid);
                 print(fg(color::white), "Link to Profile: ");
                 print(
-                    fg(color::blue),
+                    fg(color::cyan),
                     "https://steamcommunity.com/profiles/{}/\n",
                     user.steamid);
                 print(fg(color::cyan), "╾━━━━━━━━╼\n");
@@ -711,22 +670,26 @@ void show_help()
         print(fg(color::cyan) | emphasis::bold, "Commands:\n");
         print(
             fg(color::white),
-            "  fetch <steamid>           - Fetch games by SteamID64 or Unique "
-            "ID\n"
-            "  search \"<name>\"           - Search for games starting with "
-            "name (use quotes)\n"
-            "  count_played              - Count games with playtime\n"
-            "  list                      - Show names in alphabetical order\n"
-            "  list -l                   - Show AppID, name, playtime\n"
-            "  list -n                   - Show name and AppID, grouped by "
-            "first letter\n"
-            "  list -p                   - Show AppID, name, playtime, sorted "
-            "by playtime\n"
-            "  export <filename>         - Export games to "
-            "exported/filename.csv\n"
-            "  verbose on/off            - Toggle verbose logging\n"
-            "  help                      - Show this help\n"
-            "  exit                      - Exit the program\n");
+            "  fetch <steamid>           "
+            "- Fetch games by SteamID64 or Unique ID\n"
+            "  search \"<name>\"           "
+            "- Search for games starting with name (use quotes)\n"
+            "  count_played              "
+            "- Count games with playtime\n"
+            "  list                      "
+            "- Show names in alphabetical order\n"
+            "  list -l                   "
+            "- Show AppID, name, playtime\n"
+            "  list -n                   "
+            "- Show name and AppID, grouped by first letter\n"
+            "  list -p                   "
+            "- Show AppID, name, playtime, sorted by playtime\n"
+            "  export <filename>         "
+            "- Export games to exported/filename.csv\n"
+            "  help                      "
+            "- Show this help\n"
+            "  exit                      "
+            "- Exit the program\n");
         print(fg(color::cyan), "╾━━━━━━━━╼\n");
         print(fg(color::yellow), "Notes:\n");
         print(fg(color::yellow), "- Steam profile must be public.\n");
@@ -806,18 +769,6 @@ void process_command(const std::vector<std::string>& args)
                         return;
                 }
                 export_csv(args[1]);
-        } else if (args[0] == "verbose" && args.size() == 2) {
-                if (args[1] == "on") {
-                        verbose = true;
-                        print(fg(color::light_green), "Verbose mode on.\n");
-                } else if (args[1] == "off") {
-                        verbose = false;
-                        print(fg(color::light_green), "Verbose mode off.\n");
-                } else {
-                        print(
-                            fg(color::indian_red),
-                            "Error: Use 'verbose on' or 'verbose off'.\n");
-                }
         } else if (args[0] == "exit") {
                 throw std::runtime_error("exit");
         } else {

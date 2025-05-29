@@ -1,28 +1,14 @@
 {
-  "name": "steamlibfetcher",
-  "version": "1.0.0",
-  "homepage": "https://github.com/shuretokki/steam-cli-lib-fetcher",
   "dependencies": [
-    {
-      "name": "fmt",
-      "version>=": "11.0.2"
-    },
-    {
-      "name": "nlohmann-json",
-      "version>=": "3.12.0"
-    },
+    "fmt",
+    "nlohmann-json",
+    "vcpkg-cmake",
+    "vcpkg-cmake-config",
     {
       "name": "cpp-httplib",
-      "version>=": "0.20.1"
-    },
-    {
-      "name": "vcpkg-cmake",
-      "host": true
-    },
-    {
-      "name": "vcpkg-cmake-config",
-      "host": true
+      "features": [
+        "openssl"
+      ]
     }
-  ],
-  "builtin-baseline": "f26ec398c25c4980f33a50391f00a75f7ad62ef7"
+  ]
 }

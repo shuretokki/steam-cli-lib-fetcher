@@ -1,13 +1,11 @@
 #include "steam/loader.hpp"
 
-#include "steam/prefix.hpp"  // For steam_game_name_prefix_tree, steam_game_name_to_index_map
-#include "steam/utility.hpp" // For GetGamesDataPath, ToLower
+#include "steam/prefix.hpp"
+#include "steam/utility.hpp"
 
-#include <filesystem> // For std::filesystem
-#include <fstream>    // For std::ifstream, std::ofstream
-#include <iostream>   // For std::cin, std::getline in API key prompt part
-
-// nlohmann/json.hpp, fmt/core.h, fmt/color.h are included via base.hpp -> data.hpp -> loader.hpp
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 
 using namespace fmt;
 using json = nlohmann::json;
@@ -38,14 +36,13 @@ void SaveGamesDataToJson()
                 game_json["playtime_forever"] = game.playtime_forever;
                 json_output["games"].push_back(game_json);
         }
-        ofs << json_output.dump(4); /* * Pretty print with 4 spaces indent */
+        ofs << json_output.dump(4);
         ofs.close();
 }
 
 void LoadGamesDataFromJson()
 {
-        if (!api_key::LoadApiKeyFromEnv()
-            && steam_api_key.empty()) { // Check if key is still empty after trying to load
+        if (!api_key::LoadApiKeyFromEnv() && steam_api_key.empty()) {
                 print(fg(color::yellow), "STEAM_API_KEY not found or invalid in .env file or environment.\n");
                 while (true) {
                         print(

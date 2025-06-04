@@ -3,11 +3,11 @@
 STEAM_BEGIN_NAMESPACE
 namespace prefix {
 
-/* * PrefixTree Implementation */
+
 void PrefixTree::Insert(const std::string& name, size_t game_index)
 {
         Node*       current_node = root_node_;
-        std::string lower_name   = ToLower(name); /* Store and search in lowercase for case-insensitivity */
+        std::string lower_name   = ToLower(name);
         for (char ch : lower_name) {
                 if (current_node->children.find(ch) == current_node->children.end()) {
                         current_node->children[ch] = new Node();
@@ -23,7 +23,7 @@ std::vector<size_t> PrefixTree::SearchByPrefix(const std::string& prefix) const
         std::string lower_prefix = ToLower(prefix);
         for (char ch : lower_prefix) {
                 if (current_node->children.find(ch) == current_node->children.end()) {
-                        return {}; /* * Prefix not found */
+                        return {};
                 }
                 current_node = current_node->children[ch];
         }
@@ -48,5 +48,5 @@ void PrefixTree::CollectGameIndicesRecursive(const Node* current_node, std::vect
         }
 }
 
-} // namespace prefix
+} 
 STEAM_END_NAMESPACE

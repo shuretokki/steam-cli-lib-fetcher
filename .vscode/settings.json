@@ -81,5 +81,7 @@
     "queue": "cpp"
   },
   "typewriterAutoScroll.enable": true,
-  "auto-scroll.enabled": false
+  "auto-scroll.enabled": false,
+  "C_Cpp.codeAnalysis.clangTidy.checks.disabled": ["clang-diagnostic-error"],
+  "C_Cpp.errorSquiggles": "disabled"
 }

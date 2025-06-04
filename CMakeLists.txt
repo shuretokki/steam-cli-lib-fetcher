@@ -3,12 +3,9 @@ cmake_minimum_required(VERSION 3.21.7)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 project(steamf LANGUAGES CXX)
 
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-
 set(SOURCE_FILES
     src/main.cpp
     src/steam/steam.cpp
@@ -21,7 +18,6 @@ set(SOURCE_FILES
   )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   LINKER_LANGUAGE CXX
@@ -43,23 +39,16 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # FetchContent_MakeAvailable(ftxui)
 
 
-# --- Fetch Vcpkg Manifest -----------------------------------------------------
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(httplib CONFIG REQUIRED)
-
- #OpenSSL
 find_package(OpenSSL REQUIRED)
 target_compile_definitions(${PROJECT_NAME} PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
-
-
-
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
                            ${INCLUDE_DIR}
                            ${INCLUDE_DIR}/laserpants/dotenv
                           )
-
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     fmt::fmt-header-only
@@ -72,7 +61,6 @@ target_link_libraries(${PROJECT_NAME}
     # ftxui::dom
     # ftxui::screen
   )
-
 target_link_options(${PROJECT_NAME} 
   PRIVATE
     -static-libgcc

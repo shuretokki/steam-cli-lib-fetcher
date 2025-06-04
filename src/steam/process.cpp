@@ -1,13 +1,13 @@
 #include "steam/data.hpp"
 
-#include "steam/handler.hpp" // For calling handler functions
-#include "steam/process.hpp" // Includes numeric, sstream, data.hpp, base.hpp
+#include "steam/handler.hpp" 
+#include "steam/process.hpp" 
 
-// fmt/core.h, fmt/color.h are included via base.hpp -> data.hpp -> process.hpp
 
-#include <algorithm> // For std::min
-#include <iostream>  // For std::stoi error messages (though fmt handles printing)
-#include <stdexcept> // For std::runtime_error
+
+#include <algorithm> 
+#include <iostream>  
+#include <stdexcept> 
 #include <string>
 #include <vector>
 
@@ -165,5 +165,5 @@ void HandleHistoryCommand(const std::vector<std::string>& arguments)
         print(fg(color::cyan), "---------------------------------------\n");
 }
 
-} // namespace process
+} 
 STEAM_END_NAMESPACE

@@ -1,11 +1,8 @@
 #include "steam/handler.hpp"
+#include <numeric>
 
-using namespace fmt;
 using json = nlohmann::json;
-
-// Additional includes that might be needed after moving functions
-#include <numeric> // For std::iota
-
+using namespace fmt;
 STEAM_BEGIN_NAMESPACE
 
 namespace handler {
@@ -510,5 +507,4 @@ void ShowHelp()
 }
 
 } // namespace handler
-
 STEAM_END_NAMESPACE

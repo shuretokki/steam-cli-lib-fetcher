@@ -1,13 +1,12 @@
+// src/steam/process.cpp
+#include "steam/process.hpp"
 #include "steam/data.hpp"
+#include "steam/handler.hpp"
 
-#include "steam/handler.hpp" 
-#include "steam/process.hpp" 
-
-
-
-#include <algorithm> 
-#include <iostream>  
-#include <stdexcept> 
+#include <algorithm> // For std::min in HandleHistoryCommand
+#include <iostream>
+#include <sstream>   // For std::stringstream in ParseCommandLine
+#include <stdexcept> // For std::runtime_error, std::invalid_argument, std::out_of_range
 #include <string>
 #include <vector>
 
@@ -27,10 +26,18 @@ std::vector<std::string> ParseCommandLine(const std::string& command_line)
         while (ss.get(ch)) {
                 if (ch == '"') {
                         in_quotes = !in_quotes;
-                        if (!in_quotes && !current_argument.empty()) {
-                        } else if (in_quotes && !current_argument.empty()) {
-                                arguments.push_back(current_argument);
-                                current_argument.clear();
+                        // If exiting quotes and current_argument is not empty, it's part of the quoted arg.
+                        // If entering quotes and current_argument is not empty, it's a separate arg before the quote.
+                        if (!in_quotes) {                        // Just finished a quote
+                                if (!current_argument.empty()) { // Add the quoted argument
+                                        arguments.push_back(current_argument);
+                                        current_argument.clear();
+                                }
+                        } else {                                 // Just started a quote
+                                if (!current_argument.empty()) { // Add argument before the quote
+                                        arguments.push_back(current_argument);
+                                        current_argument.clear();
+                                }
                         }
                 } else if (std::isspace(ch) && !in_quotes) {
                         if (!current_argument.empty()) {
@@ -66,12 +73,29 @@ void ProcessUserCommand(const std::vector<std::string>& arguments)
                         print(fg(color::indian_red), "Error: 'search' requires a game name prefix.\n");
                         print(fg(color::yellow), "Usage: search <prefix>\n");
                 } else {
-                        handler::HandleSearchCommand(arguments[1]);
+                        // Collect all arguments after "search" for multi-word search terms if not quoted
+                        // For now, assume ParseCommandLine handles quoted arguments correctly,
+                        // and unquoted multi-word search will take arguments[1] only.
+                        // If search "game name", arguments will be ["search", "game name"]
+                        // If search game name, arguments will be ["search", "game", "name"]
+                        // We'll pass arguments[1] to handler, which might need to be smarter or
+                        // users must quote multi-word prefixes. For now, pass arguments[1].
+                        std::string search_term = arguments[1];
+                        if (arguments.size() > 2) { // if unquoted multi-word, join them. Not ideal.
+                                for (size_t i = 2; i < arguments.size(); ++i)
+                                        search_term += " " + arguments[i];
+                                print(
+                                    fg(color::yellow),
+                                    "Searching for \"{}\". For multi-word search, consider quotes: search \"{}\"\n",
+                                    search_term,
+                                    search_term);
+                        }
+                        handler::HandleSearchCommand(search_term);
                 }
         } else if (command == "count") {
                 handler::HandleCountPlayedCommand();
         } else if (command == "list") {
-                char list_format = ' ';
+                char list_format = ' '; // Default format
                 if (arguments.size() > 1) {
                         if (arguments[1] == "-l")
                                 list_format = 'l';
@@ -81,7 +105,7 @@ void ProcessUserCommand(const std::vector<std::string>& arguments)
                                 list_format = 'p';
                         else {
                                 print(fg(color::indian_red), "Error: Unknown option '{}' for list.\n", arguments[1]);
-                                print(fg(color::yellow), "Usage: list [-l | -n | -p]\n");
+                                print(fg(color::yellow), "Usage: list [ -l | -n | -p ]\n");
                                 return;
                         }
                 }
@@ -95,6 +119,29 @@ void ProcessUserCommand(const std::vector<std::string>& arguments)
                 } else {
                         handler::HandleExportToCsvCommand(arguments[1]);
                 }
+        } else if (command == "relate") {
+                if (arguments.size() < 3) {
+                        print(
+                            fg(color::indian_red),
+                            "Error: 'relate' requires two game identifiers (name or AppID).\n");
+                        print(fg(color::yellow), "Usage: relate <game1_id_or_name> <game2_id_or_name>\n");
+                } else {
+                        // Assuming arguments[1] and arguments[2] are the game identifiers.
+                        // ParseCommandLine should handle quotes.
+                        // For example: relate "game one" "another game" -> args: ["relate", "game one", "another game"]
+                        // For example: relate game1 12345 -> args: ["relate", "game1", "12345"]
+                        handler::HandleRelateCommand(arguments[1], arguments[2]);
+                }
+        } else if (command == "recommendations" || command == "recs") {
+                if (arguments.size() < 2) {
+                        print(fg(color::indian_red), "Error: 'recommendations' requires a game identifier.\n");
+                        print(fg(color::yellow), "Usage: recommendations <game_id_or_name>\n");
+                } else {
+                        // For example: recommendations "my fav game" -> args: ["recommendations", "my fav game"]
+                        handler::HandleRecommendationsCommand(arguments[1]);
+                }
+        } else if (command == "undo") {
+                handler::HandleUndoCommand();
         } else if (command == "exit") {
                 throw std::runtime_error("exit");
         } else if (command == "history") {
@@ -109,18 +156,22 @@ void AddCommandToHistory(const std::string& command_line)
         if (command_line.empty()) {
                 return;
         }
+        // Prevent excessively large history if kMaxCommandHistorySize is 0 or very large
         if (kMaxCommandHistorySize > 0 && steam_command_history.size() >= kMaxCommandHistorySize) {
                 steam_command_history.pop_front();
         }
-        if (kMaxCommandHistorySize <= 0 || steam_command_history.size() < kMaxCommandHistorySize
-            || steam_command_history.empty()) {
-                steam_command_history.push_back(command_line);
+        // Add if not full or if kMaxCommandHistorySize is unlimited (<=0 implies unlimited for this check)
+        if (kMaxCommandHistorySize <= 0 || steam_command_history.size() < kMaxCommandHistorySize) {
+                if (steam_command_history.empty()
+                    || steam_command_history.back() != command_line) { // Avoid duplicate consecutive commands
+                        steam_command_history.push_back(command_line);
+                }
         }
 }
 
 void HandleHistoryCommand(const std::vector<std::string>& arguments)
 {
-        int count = kDefaultHistoryDisplayCount;
+        int count = kDefaultHistoryDisplayCount; // Default from data.hpp
         if (arguments.size() > 1) {
                 try {
                         count = std::stoi(arguments[1]);
@@ -157,13 +208,14 @@ void HandleHistoryCommand(const std::vector<std::string>& arguments)
         int num_to_show     = std::min(static_cast<int>(steam_command_history.size()), count);
 
         int displayed_count = 0;
+        // Iterate from newest to oldest
         for (auto it = steam_command_history.rbegin();
              it != steam_command_history.rend() && displayed_count < num_to_show;
              ++it, ++displayed_count) {
-                print(fg(color::white), "- {}\n", *it);
+                print(fg(color::white), "{:>3}: {}\n", steam_command_history.size() - displayed_count, *it);
         }
         print(fg(color::cyan), "---------------------------------------\n");
 }
 
-} 
+} // namespace process
 STEAM_END_NAMESPACE

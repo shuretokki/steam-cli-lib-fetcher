@@ -1,10 +1,19 @@
 #ifndef STEAM_PROCESS_HPP
 #define STEAM_PROCESS_HPP
 
-#include <numeric> /* For std::iota */
-#include <sstream> /* For std::stringstream in ParseCommandLine */
-#include "data.hpp"
+/**
+ * @include numeric
+ * @brief std::iota usage
+ */
+#include <numeric>
 
+/**
+ * @include sstream
+ * @brief used for std::stringstream in ParseCommandLine
+ */
+#include <sstream>
+
+#include "data.hpp"
 STEAM_BEGIN_NAMESPACE
 
 namespace process {
@@ -37,4 +46,5 @@ void AddCommandToHistory(const std::string& command_line);
 void HandleHistoryCommand(const std::vector<std::string>& arguments);
 } // namespace process
 STEAM_END_NAMESPACE
+
 #endif

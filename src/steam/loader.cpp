@@ -47,7 +47,8 @@ void LoadGamesDataFromJson()
                 while (true) {
                         print(
                             fg(color::gold),
-                            "Please enter your STEAM API KEY (or type 'skip' to continue without): ");
+                            "Please enter your STEAM API KEY from here https://steamcommunity.com/dev/apikey (or type "
+                            "'skip' to continue without): ");
                         std::string temp_key;
                         if (!std::getline(std::cin, temp_key)) {
                                 print(fg(color::yellow), "\nInput error or EOF detected. Cannot read API key.\n");

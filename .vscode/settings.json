@@ -78,7 +78,8 @@
     "thread": "cpp",
     "cinttypes": "cpp",
     "valarray": "cpp",
-    "queue": "cpp"
+    "queue": "cpp",
+    "stack": "cpp"
   },
   "typewriterAutoScroll.enable": true,
   "auto-scroll.enabled": false,

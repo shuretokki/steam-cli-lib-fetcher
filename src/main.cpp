@@ -5,8 +5,9 @@ int main()
         using namespace fmt;
         using namespace steam;
         loader::LoadGamesDataFromJson();
+        graph::LoadRelations();
 
-        print(fg(color::gold) | emphasis::bold, "v1.1 - Type 'help' for commands");
+        print(fg(color::gold) | emphasis::bold, "v1.1 - Type 'help' for commands", '\n');
         print(fg(color::gold), "\n:::::::::::::::::::::::\n");
         std::string user_input_line;
 

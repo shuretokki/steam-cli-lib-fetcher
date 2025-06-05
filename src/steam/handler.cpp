@@ -505,6 +505,197 @@ void ShowHelp()
             "directory as the executable, or enter it when prompted.\n");
         print(fg(color::yellow), "  - Data is stored in: {}\n\n", GetGamesDataPath().string());
 }
+int ResolveGameToAppId(const std::string& identifier, std::string* found_game_name)
+{
+        if (identifier.empty()) {
+                print(fg(color::indian_red), "Error: Game identifier cannot be empty.\n");
+                return 0;
+        }
+        // Try parsing as int (app_id)
+        try {
+                int app_id = std::stoi(identifier);
+                // Check if this app_id exists in our collection
+                for (const auto& game : steam_game_collection) {
+                        if (game.app_id == app_id) {
+                                if (found_game_name)
+                                        *found_game_name = game.name;
+                                return app_id;
+                        }
+                }
+                print(fg(color::yellow), "AppID {} not found in the current fetched game list.\n", app_id);
+                return 0; // Not found in collection
+        } catch (const std::invalid_argument&) {
+                // Not an integer, try as name
+                std::string lower_identifier = ToLower(identifier);
+
+                // First, try exact match (case-insensitive) using the map
+                auto map_it                  = prefix::steam_game_name_to_index_map.find(lower_identifier);
+                if (map_it != prefix::steam_game_name_to_index_map.end()) {
+                        size_t index = map_it->second;
+                        if (index < steam_game_collection.size()) {
+                                if (found_game_name)
+                                        *found_game_name = steam_game_collection[index].name;
+                                return steam_game_collection[index].app_id;
+                        }
+                }
+
+                // Try prefix search if exact match fails
+                auto found_indices = prefix::steam_game_name_prefix_tree.SearchByPrefix(lower_identifier);
+                if (found_indices.empty()) {
+                        print(fg(color::indian_red), "No game found matching '{}'.\n", identifier);
+                        return 0;
+                }
+                if (found_indices.size() > 1) {
+                        // Check if one of the prefix matches is an exact match for the identifier (case-insensitive)
+                        for (size_t index : found_indices) {
+                                if (index < steam_game_collection.size()
+                                    && ToLower(steam_game_collection[index].name) == lower_identifier) {
+                                        if (found_game_name)
+                                                *found_game_name = steam_game_collection[index].name;
+                                        return steam_game_collection[index].app_id;
+                                }
+                        }
+
+                        print(
+                            fg(color::yellow),
+                            "Multiple games match prefix '{}'. Please be more specific or use AppID:\n",
+                            identifier);
+                        for (size_t i = 0; i < std::min(found_indices.size(), static_cast<size_t>(5));
+                             ++i) { // Show top 5 matches
+                                size_t index = found_indices[i];
+                                if (index < steam_game_collection.size()) {
+                                        print(
+                                            fg(color::white),
+                                            "- \"{}\" (AppID: {})\n",
+                                            steam_game_collection[index].name,
+                                            steam_game_collection[index].app_id);
+                                }
+                        }
+                        return 0; // Ambiguous
+                }
+                // Exactly one match by prefix
+                size_t index = found_indices[0];
+                if (index < steam_game_collection.size()) {
+                        if (found_game_name)
+                                *found_game_name = steam_game_collection[index].name;
+                        return steam_game_collection[index].app_id;
+                }
+        } catch (const std::out_of_range&) {
+                // stoi out of range
+                print(fg(color::indian_red), "Invalid AppID format (out of range): '{}'.\n", identifier);
+                return 0;
+        }
+        print(fg(color::indian_red), "Could not resolve game identifier: '{}'.\n", identifier);
+        return 0; // Should ideally not be reached if logic above is complete
+}
+
+void HandleRelateCommand(const std::string& game1_id_str, const std::string& game2_id_str)
+{
+        if (steam_game_collection.empty() && !steam_has_fetched_data) {
+                print(fg(color::yellow), "No local game data. Use 'fetch' first.\n");
+                return;
+        }
+        std::string game1_name_resolved, game2_name_resolved;
+        int         app_id1 = ResolveGameToAppId(game1_id_str, &game1_name_resolved);
+        if (app_id1 == 0) {
+                print(fg(color::indian_red), "Could not resolve first game: '{}'.\n", game1_id_str);
+                return;
+        }
+        int app_id2 = ResolveGameToAppId(game2_id_str, &game2_name_resolved);
+        if (app_id2 == 0) {
+                print(fg(color::indian_red), "Could not resolve second game: '{}'.\n", game2_id_str);
+                return;
+        }
+
+        if (app_id1 == app_id2) {
+                print(fg(color::yellow), "Cannot relate a game to itself.\n");
+                return;
+        }
+
+        graph::AddRelation(app_id1, app_id2);
+        graph::SaveRelations();                        // Save immediately
+        undo::PushAddRelationAction(app_id1, app_id2); // Push to undo stack
+
+        // Ensure names are fetched for display if not provided by ID resolution (e.g. if ID was numeric)
+        if (game1_name_resolved.empty()) { // Should be filled by ResolveGameToAppId
+                for (const auto& g : steam_game_collection)
+                        if (g.app_id == app_id1)
+                                game1_name_resolved = g.name;
+        }
+        if (game2_name_resolved.empty()) { // Should be filled by ResolveGameToAppId
+                for (const auto& g : steam_game_collection)
+                        if (g.app_id == app_id2)
+                                game2_name_resolved = g.name;
+        }
+
+        print(
+            fg(color::light_green),
+            "Successfully related \"{}\" (AppID: {}) and \"{}\" (AppID: {}).\n",
+            game1_name_resolved,
+            app_id1,
+            game2_name_resolved,
+            app_id2);
+}
+
+void HandleRecommendationsCommand(const std::string& game_id_str)
+{
+        if (steam_game_collection.empty() && !steam_has_fetched_data) {
+                print(fg(color::yellow), "No local game data. Use 'fetch' first.\n");
+                return;
+        }
+        if (graph::steam_game_relations_graph.empty()) {
+                print(fg(color::yellow), "No game relations defined. Use 'relate' command first.\n");
+                return;
+        }
+
+        std::string game_name_resolved;
+        int         app_id = ResolveGameToAppId(game_id_str, &game_name_resolved);
+        if (app_id == 0) {
+                print(fg(color::indian_red), "Could not resolve game: '{}'.\n", game_id_str);
+                return;
+        }
+        if (game_name_resolved.empty()) { // Should be filled by ResolveGameToAppId
+                for (const auto& g : steam_game_collection)
+                        if (g.app_id == app_id)
+                                game_name_resolved = g.name;
+        }
+
+        std::vector<int> related_app_ids = graph::GetRelatedGames(app_id);
+
+        if (related_app_ids.empty()) {
+                print(
+                    fg(color::yellow),
+                    "No recommendations found for \"{}\" (AppID: {}).\n",
+                    game_name_resolved,
+                    app_id);
+                return;
+        }
+
+        print(fg(color::gold) | emphasis::bold, "Recommendations for \"{}\" (AppID {}):\n", game_name_resolved, app_id);
+        for (int related_id : related_app_ids) {
+                bool found_in_collection = false;
+                for (const auto& game : steam_game_collection) {
+                        if (game.app_id == related_id) {
+                                print(fg(color::white), "- \"{}\" (AppID: {})\n", game.name, game.app_id);
+                                found_in_collection = true;
+                                break;
+                        }
+                }
+                if (!found_in_collection) {
+                        // This case should be rare if relations are only made between known games,
+                        // but could happen if data/relations.json is manually edited or games are removed from
+                        // collection.
+                        print(fg(color::yellow), "- Unknown game (AppID: {})\n", related_id);
+                }
+        }
+        print(fg(color::cyan), "--------------------------------------------------\n");
+}
+
+void HandleUndoCommand()
+{
+        undo::PopAndExecuteUndo();
+        // Message is printed by PopAndExecuteUndo
+}
 
 } // namespace handler
 STEAM_END_NAMESPACE

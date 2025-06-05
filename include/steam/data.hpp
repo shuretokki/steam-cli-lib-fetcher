@@ -1,17 +1,31 @@
-
-/**------------------------------------------------------------------------
- *    data.hpp header file
- *------------------------------------------------------------------------**/
-
 #ifndef STEAM_DATA_HPP
 #define STEAM_DATA_HPP
 
+/**
+ * @include deque
+ * @brief used for
+ */
 #include <deque>
-#include <queue>
-#include <string>
-#include <vector>
-#include "base.hpp"
 
+/**
+ * @include queue
+ * @brief used for
+ */
+#include <queue>
+
+/**
+ * @include string
+ * @brief used for string usage
+ */
+#include <string>
+
+/**
+ * @include vector
+ * @brief used for
+ */
+#include <vector>
+
+#include "base.hpp"
 STEAM_BEGIN_NAMESPACE
 
 namespace data {
@@ -19,10 +33,9 @@ struct GameData
 {
         std::string name;
         int         app_id;
-        int         playtime_forever; /* * Playtime in minutes. */
+        int         playtime_forever;
 };
 } // namespace data
-// namespace data
 
 namespace data {
 struct UserData
@@ -71,7 +84,6 @@ extern data::UserData steam_current_user_data;
 /*
  * /// Global deque storing the command history.             */
 extern std::deque<std::string> steam_command_history;
-
 STEAM_END_NAMESPACE
 
 #endif
